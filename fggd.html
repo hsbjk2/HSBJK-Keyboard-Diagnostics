@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSBJK — Keyboard Diagnostics Suite</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --surface2: #f0f0ed;
+    --border: #e0e0dc;
+    --border2: #c8c8c4;
+    --text: #1a1a18;
+    --text2: #5a5a56;
+    --text3: #9a9a96;
+    --blue: #2563eb;
+    --blue-bg: #eff6ff;
+    --blue-border: #bfdbfe;
+    --blue-text: #1d4ed8;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --green-border: #bbf7d0;
+    --green-text: #15803d;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --red-border: #fecaca;
+    --amber-bg: #fffbeb;
+    --amber-border: #fde68a;
+    --amber-text: #92400e;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #14141a;
+    --surface: #1e1e24;
+    --surface2: #26262e;
+    --border: #34343e;
+    --border2: #46464f;
+    --text: #f0f0f0;
+    --text2: #aeaeb6;
+    --text3: #75757e;
+    --blue: #3b82f6;
+    --blue-bg: #1e3a5f;
+    --blue-border: #2d5a8c;
+    --blue-text: #93c5fd;
+    --green: #22c55e;
+    --green-bg: #14301f;
+    --green-border: #1f5132;
+    --green-text: #4ade80;
+    --red: #f87171;
+    --red-bg: #3a1414;
+    --red-border: #5c1f1f;
+    --amber-bg: #3a2e0f;
+    --amber-border: #5c4a1a;
+    --amber-text: #fbbf24;
+  }
+
+  html, body {
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .logo-wrap { display: flex; flex-direction: column; gap: 1px; }
+  .logo {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: var(--text);
+  }
+  .logo .accent { color: var(--blue); }
+  .logo-sub {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    color: var(--text3);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  .nav-btn {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue-text);
+    font-weight: 500;
+  }
+
+  /* Settings (theme + language) */
+  .settings { display: flex; align-items: center; gap: 8px; }
+  .lang-select {
+    font-size: 12px; padding: 6px 10px; border-radius: 20px;
+    border: 1px solid var(--border2); background: var(--surface);
+    color: var(--text2); font-family: 'Inter', sans-serif; cursor: pointer; outline: none;
+    transition: all 0.15s;
+  }
+  .lang-select:hover { background: var(--surface2); }
+  .theme-toggle {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border2); background: var(--surface);
+    cursor: pointer; font-size: 15px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; color: var(--text2);
+  }
+  .theme-toggle:hover { background: var(--surface2); }
+
+  /* Main */
+  .main { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* Banner */
+  .banner {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .banner-icon { font-size: 22px; }
+  .banner-msg { flex: 1; }
+  .banner-msg strong { font-size: 13px; font-weight: 600; color: var(--amber-text); display: block; margin-bottom: 2px; transition: color 0.2s; }
+  .banner-msg span { font-size: 12px; color: var(--amber-text); opacity: 0.8; transition: color 0.2s; }
+  .banner-btn {
+    font-size: 12px; padding: 6px 14px;
+    border-radius: var(--radius); border: 1px solid var(--amber-border);
+    background: transparent; cursor: pointer; color: var(--amber-text);
+    font-family: 'Inter', sans-serif; white-space: nowrap;
+    transition: background 0.15s, color 0.2s, border-color 0.2s;
+  }
+  .banner-btn:hover { background: #fde68a44; }
+
+  .banner.detected {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+  }
+  .banner.detected .banner-msg strong,
+  .banner.detected .banner-msg span {
+    color: var(--green-text);
+  }
+  .banner.detected .banner-btn {
+    color: var(--green-text);
+    border-color: var(--green-border);
+  }
+  .banner.detected .banner-btn:hover { background: #bbf7d044; }
+
+  /* Sections */
+  .section { display: none; }
+  .section.active { display: block; }
+  .sec-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .sec-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; }
+
+  /* Key display */
+  .key-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem 1rem;
+    text-align: center;
+    margin-bottom: 1.25rem;
+    min-height: 130px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .key-display.idle .key-big { font-size: 15px; color: var(--text3); font-weight: 400; }
+  .key-big { font-size: 52px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 6px; }
+  .key-name { font-size: 14px; color: var(--text2); }
+  .key-code { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+
+  /* Stats */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.875rem 1rem;
+    text-align: center;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .stat-val { font-size: 26px; font-weight: 600; color: var(--text); }
+  .stat-lbl { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: 0.3px; }
+
+  /* Key log */
+  .key-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+    max-height: 70px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    word-break: break-all;
+    line-height: 1.8;
+    margin-bottom: 1.25rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  /* Visual keyboard */
+  .kb-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .kb-row { display: flex; gap: 5px; margin-bottom: 5px; }
+  .kb-key {
+    min-width: 38px; height: 38px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: var(--text2);
+    cursor: default; transition: all 0.1s; user-select: none;
+    padding: 0 6px; white-space: nowrap; flex-shrink: 0;
+  }
+  .kb-key.w56 { min-width: 56px; }
+  .kb-key.w80 { min-width: 80px; }
+  .kb-key.w190 { min-width: 190px; }
+  .kb-key.active {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue-text);
+    transform: scale(0.9);
+  }
+  .kb-key.pressed {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green-text);
+  }
+
+  /* Grid clusters (nav / arrows / numpad) */
+  .kb-extra-wrap { display: flex; gap: 18px; align-items: flex-start; flex-shrink: 0; }
+  .kb-cluster-col { display: flex; flex-direction: column; gap: 14px; flex-shrink: 0; }
+  .grid-cluster { display: grid; gap: 5px; flex-shrink: 0; }
+  .grid-key {
+    width: 38px; height: 38px;
+    border-radius: 7px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: var(--text2);
+    cursor: default; transition: all 0.1s; user-select: none;
+  }
+  .grid-key.active {
+    background: var(--blue-bg);
+    border-color: var(--blue-border);
+    color: var(--blue-text);
+    transform: scale(0.9);
+  }
+  .grid-key.pressed {
+    background: var(--green-bg);
+    border-color: var(--green-border);
+    color: var(--green-text);
+  }
+  .kb-section-label {
+    font-size: 10px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 4px; text-align: center;
+  }
+
+  /* Action button */
+  .action-btn {
+    font-size: 13px; padding: 8px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: var(--surface); cursor: pointer;
+    color: var(--text2); font-family: 'Inter', sans-serif;
+    margin-right: 8px; transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* Typing */
+  .typing-text {
+    font-size: 17px; line-height: 1.9; letter-spacing: 0.3px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .correct { color: var(--green); }
+  .wrong { color: var(--red); background: var(--red-bg); border-radius: 2px; }
+  .cursor-char { border-left: 2px solid var(--blue); }
+  .type-input {
+    width: 100%; padding: 0.875rem 1rem;
+    border-radius: var(--radius); border: 1.5px solid var(--border2);
+    background: var(--surface); font-size: 15px;
+    font-family: 'Inter', sans-serif; color: var(--text);
+    outline: none; margin-bottom: 1rem; transition: border-color 0.15s, background-color 0.2s, color 0.2s;
+  }
+  .type-input:focus { border-color: var(--blue); }
+  .typing-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+
+  /* Combo */
+  .combo-display {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    min-height: 72px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 0.75rem;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .combo-key {
+    background: var(--blue-bg); border: 1px solid var(--blue-border);
+    color: var(--blue-text); padding: 6px 16px;
+    border-radius: var(--radius); font-size: 14px; font-weight: 500;
+  }
+  .combo-plus { color: var(--text3); font-size: 20px; }
+  .combo-hint { font-size: 13px; color: var(--text3); }
+  .combo-name { font-size: 13px; color: var(--text2); margin-bottom: 1rem; min-height: 20px; }
+
+  /* Rollover */
+  .rollover-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .ro-key {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0.75rem;
+    text-align: center; font-size: 14px; font-weight: 500; color: var(--text2);
+    transition: all 0.1s;
+  }
+  .ro-key.held {
+    background: var(--green-bg); border-color: var(--green-border);
+    color: var(--green-text);
+  }
+  .ro-count { text-align: center; font-size: 56px; font-weight: 600; color: var(--text); line-height: 1; margin-bottom: 4px; }
+  .ro-label { text-align: center; font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; }
+  .ro-rating { font-size: 14px; color: var(--text2); margin-bottom: 1rem; }
+
+  /* Repeat rate */
+  .rate-bar-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 100px; height: 10px; margin-bottom: 1.25rem; overflow: hidden;
+  }
+  .rate-bar {
+    height: 100%; width: 0%; background: var(--blue);
+    border-radius: 100px; transition: width 0.08s;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 2rem 1rem;
+    font-size: 12px; color: var(--text3);
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+    transition: border-color 0.2s;
+  }
+  .footer strong { color: var(--text2); letter-spacing: 1px; }
+
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .typing-stats { grid-template-columns: repeat(2, 1fr); }
+    .rollover-grid { grid-template-columns: repeat(3, 1fr); }
+    .nav { display: none; }
+    .header { padding: 0 1rem; }
+    .main { padding: 1rem; }
+    /* mobile nav at bottom */
+    .mobile-nav { display: flex; }
+  }
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 0.5rem; gap: 4px; z-index: 99; flex-wrap: nowrap; overflow-x: auto;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .mobile-nav .nav-btn { font-size: 11px; padding: 5px 10px; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-wrap">
+    <div class="logo">HS<span class="accent">BJK</span></div>
+    <div class="logo-sub" data-i18n="logoSub">Keyboard Diagnostics Suite</div>
+  </div>
+  <div class="header-right">
+    <nav class="nav">
+      <button class="nav-btn active" onclick="switchTab('keytest', this)" data-i18n="navKeytest">Key test</button>
+      <button class="nav-btn" onclick="switchTab('typing', this)" data-i18n="navTyping">Typing speed</button>
+      <button class="nav-btn" onclick="switchTab('combo', this)" data-i18n="navCombo">Combinations</button>
+      <button class="nav-btn" onclick="switchTab('rollover', this)" data-i18n="navRollover">Rollover</button>
+      <button class="nav-btn" onclick="switchTab('repeat', this)" data-i18n="navRepeat">Repeat rate</button>
+    </nav>
+    <div class="settings">
+      <select id="lang-select" class="lang-select" onchange="setLanguage(this.value)">
+        <option value="en" selected>EN</option>
+        <option value="es">ES</option>
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+        <option value="hi">HI</option>
+      </select>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav -->
+<nav class="mobile-nav">
+  <button class="nav-btn active" onclick="switchTab('keytest', this)" data-i18n="navKeytest">Key test</button>
+  <button class="nav-btn" onclick="switchTab('typing', this)" data-i18n="navTypingShort">Typing</button>
+  <button class="nav-btn" onclick="switchTab('combo', this)" data-i18n="navComboShort">Combos</button>
+  <button class="nav-btn" onclick="switchTab('rollover', this)" data-i18n="navRollover">Rollover</button>
+  <button class="nav-btn" onclick="switchTab('repeat', this)" data-i18n="navRepeatShort">Repeat</button>
+</nav>
+
+<main class="main">
+
+  <!-- Detection banner (reflects real keyboard activity) -->
+  <div id="detect-banner" class="banner">
+    <span class="banner-icon" id="banner-icon">⌨️</span>
+    <div class="banner-msg">
+      <strong id="banner-title" data-i18n="bannerWaitTitle">Waiting for keyboard input…</strong>
+      <span id="banner-sub" data-i18n="bannerWaitSub">Press any key to confirm your keyboard is connected and being detected by the browser.</span>
+    </div>
+    <button class="banner-btn" id="banner-btn" data-i18n="bannerDismiss" onclick="document.getElementById('detect-banner').style.display='none'">Dismiss</button>
+  </div>
+
+  <!-- ===== KEY TEST ===== -->
+  <div id="sec-keytest" class="section active">
+    <div class="sec-title" data-i18n="keytestTitle">Key press test</div>
+    <div class="sec-sub" data-i18n="keytestSub">Press any key to test it. Keys turn green once tested. Test every key to verify full functionality.</div>
+
+    <div id="key-display" class="key-display idle">
+      <div class="key-big" id="kd-char">↓</div>
+      <div class="key-name" id="kd-name" data-i18n="kdPlaceholder">Press any key to begin</div>
+      <div class="key-code" id="kd-code"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-lbl" data-i18n="statKeysPressed">Keys pressed</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-unique">0</div><div class="stat-lbl" data-i18n="statUniqueKeys">Unique keys</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-special">0</div><div class="stat-lbl" data-i18n="statSpecialKeys">Special keys</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-pct">0%</div><div class="stat-lbl" data-i18n="statLayoutTested">Layout tested</div></div>
+    </div>
+
+    <div id="key-log" class="key-log" style="color:var(--text3);font-style:italic;" data-i18n="keyLogPlaceholder">Key history will appear here...</div>
+
+    <!-- Keyboard mode toggle -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text2);font-weight:500;" data-i18n="kbLayoutLabel">Keyboard layout:</span>
+      <div style="display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
+        <button id="kb-btn-full" onclick="setKbMode('full')" data-i18n="kbFullBtn" style="font-size:12px;padding:5px 14px;border:none;background:#2563eb;color:#fff;cursor:pointer;font-family:Inter,sans-serif;font-weight:500;transition:all 0.15s;">⌨ Full (numpad)</button>
+        <button id="kb-btn-laptop" onclick="setKbMode('laptop')" data-i18n="kbLaptopBtn" style="font-size:12px;padding:5px 14px;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:Inter,sans-serif;font-weight:400;border-left:1px solid var(--border2);transition:all 0.15s;">💻 Laptop (no numpad)</button>
+        <button id="kb-btn-half" onclick="setKbMode('half')" data-i18n="kbHalfBtn" style="font-size:12px;padding:5px 14px;border:none;background:var(--surface);color:var(--text2);cursor:pointer;font-family:Inter,sans-serif;font-weight:400;border-left:1px solid var(--border2);transition:all 0.15s;">◧ Half (left)</button>
+      </div>
+      <span id="kb-mode-badge" style="font-size:11px;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:3px 10px;">Full — 98 keys (with numpad)</span>
+    </div>
+
+    <div class="kb-wrap">
+      <!-- Full / Laptop layouts share the same main block; numpad is shown/hidden -->
+      <div id="kb-full" style="display:flex; gap:18px; align-items:flex-start;">
+        <div id="kb-main-block">
+          <div class="kb-row" id="kb-r0"></div>
+          <div class="kb-row" id="kb-r1"></div>
+          <div class="kb-row" id="kb-r2"></div>
+          <div class="kb-row" id="kb-r3"></div>
+          <div class="kb-row" id="kb-r4"></div>
+          <div class="kb-row" id="kb-r5"></div>
+        </div>
+        <div class="kb-extra-wrap">
+          <div class="kb-cluster-col">
+            <div>
+              <div class="kb-section-label">Nav</div>
+              <div id="kb-nav-grid" class="grid-cluster"></div>
+            </div>
+            <div style="margin-top:auto;">
+              <div class="kb-section-label">Arrows</div>
+              <div id="kb-arrow-grid" class="grid-cluster"></div>
+            </div>
+          </div>
+          <div id="kb-numpad-wrap">
+            <div class="kb-section-label">Numpad</div>
+            <div id="kb-numpad-grid" class="grid-cluster"></div>
+          </div>
+        </div>
+      </div>
+      <div id="kb-half" style="display:none;">
+        <div id="kb-half-note" style="font-size:11px;color:var(--text3);margin-bottom:8px;font-style:italic;" data-i18n="kbHalfNote">Showing left-hand keys only (Q–T, A–G, Z–B + modifiers)</div>
+        <div class="kb-row" id="kb-h0"></div>
+        <div class="kb-row" id="kb-h1"></div>
+        <div class="kb-row" id="kb-h2"></div>
+        <div class="kb-row" id="kb-h3"></div>
+        <div class="kb-row" id="kb-h4"></div>
+        <div class="kb-row" id="kb-h5"></div>
+      </div>
+    </div>
+
+    <button class="action-btn" onclick="resetKeyTest()" data-i18n="resetTest">↺ Reset test</button>
+  </div>
+
+  <!-- ===== TYPING ===== -->
+  <div id="sec-typing" class="section">
+    <div class="sec-title" data-i18n="typingTitle">Typing speed test</div>
+    <div class="sec-sub" data-i18n="typingSub">Type the sentence below as fast and accurately as you can. Results update live.</div>
+    <div id="typing-display" class="typing-text"></div>
+    <input class="type-input" id="type-input" data-i18n-placeholder="typingPlaceholder" placeholder="Click here and start typing..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    <div class="typing-stats">
+      <div class="stat-card"><div class="stat-val" id="t-wpm">0</div><div class="stat-lbl" data-i18n="statWPM">WPM</div></div>
+      <div class="stat-card"><div class="stat-val" id="t-acc">100%</div><div class="stat-lbl" data-i18n="statAccuracy">Accuracy</div></div>
+      <div class="stat-card"><div class="stat-val" id="t-time">0s</div><div class="stat-lbl" data-i18n="statTime">Time</div></div>
+    </div>
+    <button class="action-btn" onclick="resetTyping()" data-i18n="newText">↺ New text</button>
+    <button class="action-btn" onclick="document.getElementById('type-input').focus()" data-i18n="focusInput">▶ Focus input</button>
+  </div>
+
+  <!-- ===== COMBO ===== -->
+  <div id="sec-combo" class="section">
+    <div class="sec-title" data-i18n="comboTitle">Key combination tester</div>
+    <div class="sec-sub" data-i18n="comboSub">Hold multiple keys simultaneously to test shortcuts and modifier combos like Ctrl+Alt+Del.</div>
+    <div class="combo-display" id="combo-display">
+      <span class="combo-hint" data-i18n="comboHint">Hold any keys to see the combination...</span>
+    </div>
+    <div class="combo-name" id="combo-name"></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="c-held">0</div><div class="stat-lbl" data-i18n="statKeysHeld">Keys held</div></div>
+      <div class="stat-card"><div class="stat-val" id="c-total">0</div><div class="stat-lbl" data-i18n="statCombosTested">Combos tested</div></div>
+      <div class="stat-card"><div class="stat-val" id="c-max">0</div><div class="stat-lbl" data-i18n="statMaxSimultaneous">Max simultaneous</div></div>
+      <div class="stat-card"><div class="stat-val" id="c-mods">0</div><div class="stat-lbl" data-i18n="statModifierKeys">Modifier keys used</div></div>
+    </div>
+    <button class="action-btn" onclick="resetCombo()" data-i18n="resetStats">↺ Reset stats</button>
+  </div>
+
+  <!-- ===== ROLLOVER ===== -->
+  <div id="sec-rollover" class="section">
+    <div class="sec-title" data-i18n="rolloverTitle">N-Key rollover (NKRO) test</div>
+    <div class="sec-sub" data-i18n="rolloverSub">Hold as many keys as possible at once. 6KRO is gaming-grade; NKRO (unlimited) is professional-grade.</div>
+    <div class="ro-count" id="ro-count">0</div>
+    <div class="ro-label" data-i18n="roLabel">keys held simultaneously</div>
+    <div class="rollover-grid" id="ro-grid"></div>
+    <div class="ro-rating" id="ro-rating" data-i18n="roPlaceholder">Hold multiple keys to test rollover capability...</div>
+    <button class="action-btn" onclick="resetRollover()" data-i18n="resetMax">↺ Reset max</button>
+  </div>
+
+  <!-- ===== REPEAT RATE ===== -->
+  <div id="sec-repeat" class="section">
+    <div class="sec-title" data-i18n="repeatTitle">Key repeat rate test</div>
+    <div class="sec-sub" data-i18n="repeatSub">Hold down a single key to measure its repeat speed. Higher events/sec = faster typematic rate.</div>
+    <div id="rr-display" class="key-display idle" style="margin-bottom:1.25rem;">
+      <div class="key-big" id="rr-char" data-i18n="rrHoldKey">Hold a key</div>
+      <div class="key-name" id="rr-name" data-i18n="rrNoKey">No key being held</div>
+    </div>
+    <div class="rate-bar-wrap"><div class="rate-bar" id="rate-bar"></div></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="rr-cps">0</div><div class="stat-lbl" data-i18n="statEventsSec">Events / sec</div></div>
+      <div class="stat-card"><div class="stat-val" id="rr-total">0</div><div class="stat-lbl" data-i18n="statTotalRepeats">Total repeats</div></div>
+      <div class="stat-card"><div class="stat-val" id="rr-delay">—</div><div class="stat-lbl" data-i18n="statInitialDelay">Initial delay (ms)</div></div>
+      <div class="stat-card"><div class="stat-val" id="rr-rating">—</div><div class="stat-lbl" data-i18n="statRating">Rating</div></div>
+    </div>
+    <button class="action-btn" onclick="resetRepeat()" data-i18n="resetBtn">↺ Reset</button>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <strong>HSBJK</strong> — <span data-i18n="footerSuite">Professional Keyboard Diagnostics Suite</span> &nbsp;·&nbsp; <span data-i18n="footerLocal">All tests run locally in your browser</span> &nbsp;·&nbsp; <span data-i18n="footerNoData">No data is collected</span>
+</footer>
+
+<script>
+// ======================================================================
+// TRANSLATIONS
+// ======================================================================
+const TRANSLATIONS = {
+  en: {
+    logoSub: "Keyboard Diagnostics Suite",
+    navKeytest: "Key test", navTyping: "Typing speed", navCombo: "Combinations", navRollover: "Rollover", navRepeat: "Repeat rate",
+    navTypingShort: "Typing", navComboShort: "Combos", navRepeatShort: "Repeat",
+    bannerWaitTitle: "Waiting for keyboard input…",
+    bannerWaitSub: "Press any key to confirm your keyboard is connected and being detected by the browser.",
+    bannerDetectedTitle: "Keyboard detected",
+    bannerDetectedPrefix: "Receiving input — last key:",
+    bannerDetectedSuffix: "All diagnostics are now active.",
+    bannerDismiss: "Dismiss", bannerGotIt: "Got it",
+    keytestTitle: "Key press test",
+    keytestSub: "Press any key to test it. Keys turn green once tested. Test every key to verify full functionality.",
+    kdPlaceholder: "Press any key to begin",
+    statKeysPressed: "Keys pressed", statUniqueKeys: "Unique keys", statSpecialKeys: "Special keys", statLayoutTested: "Layout tested",
+    keyLogPlaceholder: "Key history will appear here...",
+    kbLayoutLabel: "Keyboard layout:",
+    kbFullBtn: "⌨ Full (numpad)", kbLaptopBtn: "💻 Laptop (no numpad)", kbHalfBtn: "◧ Half (left)",
+    kbFullBadge: "Full — {n} keys (with numpad)", kbLaptopBadge: "Laptop — {n} keys (no numpad)", kbHalfBadge: "Half — {n} keys (left side)",
+    kbHalfNote: "Showing left-hand keys only (Q–T, A–G, Z–B + modifiers)",
+    resetTest: "↺ Reset test",
+    typingTitle: "Typing speed test",
+    typingSub: "Type the sentence below as fast and accurately as you can. Results update live.",
+    typingPlaceholder: "Click here and start typing...",
+    statWPM: "WPM", statAccuracy: "Accuracy", statTime: "Time",
+    newText: "↺ New text", focusInput: "▶ Focus input",
+    comboTitle: "Key combination tester",
+    comboSub: "Hold multiple keys simultaneously to test shortcuts and modifier combos like Ctrl+Alt+Del.",
+    comboHint: "Hold any keys to see the combination...",
+    statKeysHeld: "Keys held", statCombosTested: "Combos tested", statMaxSimultaneous: "Max simultaneous", statModifierKeys: "Modifier keys used",
+    resetStats: "↺ Reset stats",
+    rolloverTitle: "N-Key rollover (NKRO) test",
+    rolloverSub: "Hold as many keys as possible at once. 6KRO is gaming-grade; NKRO (unlimited) is professional-grade.",
+    roLabel: "keys held simultaneously",
+    roPlaceholder: "Hold multiple keys to test rollover capability...",
+    roMaxReachedLabel: "Max reached", roNkroCapableLong: "✓ NKRO / Full rollover capable", roLimited: "Limited rollover",
+    roKeysHeldNkro: "keys held — ✓ NKRO capable", roKeysPartial: "keys — Partial rollover", roKeySingle: "key held",
+    resetMax: "↺ Reset max",
+    repeatTitle: "Key repeat rate test",
+    repeatSub: "Hold down a single key to measure its repeat speed. Higher events/sec = faster typematic rate.",
+    rrHoldKey: "Hold a key", rrNoKey: "No key being held",
+    statEventsSec: "Events / sec", statTotalRepeats: "Total repeats", statInitialDelay: "Initial delay (ms)", statRating: "Rating",
+    ratingExcellent: "Excellent", ratingGood: "Good", ratingNormal: "Normal", ratingSlow: "Slow",
+    resetBtn: "↺ Reset",
+    footerSuite: "Professional Keyboard Diagnostics Suite",
+    footerLocal: "All tests run locally in your browser",
+    footerNoData: "No data is collected"
+  },
+  es: {
+    logoSub: "Suite de diagnóstico de teclado",
+    navKeytest: "Prueba de teclas", navTyping: "Velocidad de escritura", navCombo: "Combinaciones", navRollover: "Rollover", navRepeat: "Tasa de repetición",
+    navTypingShort: "Escritura", navComboShort: "Combos", navRepeatShort: "Repetición",
+    bannerWaitTitle: "Esperando entrada del teclado…",
+    bannerWaitSub: "Pulsa cualquier tecla para confirmar que tu teclado está conectado y siendo detectado por el navegador.",
+    bannerDetectedTitle: "Teclado detectado",
+    bannerDetectedPrefix: "Recibiendo entrada — última tecla:",
+    bannerDetectedSuffix: "Todos los diagnósticos están activos.",
+    bannerDismiss: "Cerrar", bannerGotIt: "Entendido",
+    keytestTitle: "Prueba de pulsación de teclas",
+    keytestSub: "Pulsa cualquier tecla para probarla. Las teclas se vuelven verdes una vez probadas. Prueba todas las teclas para verificar el funcionamiento completo.",
+    kdPlaceholder: "Pulsa cualquier tecla para comenzar",
+    statKeysPressed: "Teclas pulsadas", statUniqueKeys: "Teclas únicas", statSpecialKeys: "Teclas especiales", statLayoutTested: "Diseño probado",
+    keyLogPlaceholder: "El historial de teclas aparecerá aquí...",
+    kbLayoutLabel: "Diseño de teclado:",
+    kbFullBtn: "⌨ Completo (numérico)", kbLaptopBtn: "💻 Portátil (sin numérico)", kbHalfBtn: "◧ Mitad (izquierda)",
+    kbFullBadge: "Completo — {n} teclas (con numérico)", kbLaptopBadge: "Portátil — {n} teclas (sin numérico)", kbHalfBadge: "Mitad — {n} teclas (lado izquierdo)",
+    kbHalfNote: "Mostrando solo las teclas del lado izquierdo (Q–T, A–G, Z–B + modificadores)",
+    resetTest: "↺ Reiniciar prueba",
+    typingTitle: "Prueba de velocidad de escritura",
+    typingSub: "Escribe la siguiente frase lo más rápido y preciso posible. Los resultados se actualizan en vivo.",
+    typingPlaceholder: "Haz clic aquí y empieza a escribir...",
+    statWPM: "PPM", statAccuracy: "Precisión", statTime: "Tiempo",
+    newText: "↺ Nuevo texto", focusInput: "▶ Enfocar campo",
+    comboTitle: "Probador de combinaciones de teclas",
+    comboSub: "Mantén pulsadas varias teclas a la vez para probar atajos y combinaciones como Ctrl+Alt+Del.",
+    comboHint: "Mantén pulsadas teclas para ver la combinación...",
+    statKeysHeld: "Teclas mantenidas", statCombosTested: "Combinaciones probadas", statMaxSimultaneous: "Máx. simultáneas", statModifierKeys: "Modificadores usados",
+    resetStats: "↺ Reiniciar estadísticas",
+    rolloverTitle: "Prueba de rollover N-Key (NKRO)",
+    rolloverSub: "Mantén pulsadas tantas teclas como sea posible. 6KRO es de nivel gaming; NKRO (ilimitado) es de nivel profesional.",
+    roLabel: "teclas mantenidas simultáneamente",
+    roPlaceholder: "Mantén varias teclas para probar la capacidad de rollover...",
+    roMaxReachedLabel: "Máximo alcanzado", roNkroCapableLong: "✓ NKRO / Rollover completo", roLimited: "Rollover limitado",
+    roKeysHeldNkro: "teclas mantenidas — ✓ NKRO compatible", roKeysPartial: "teclas — Rollover parcial", roKeySingle: "tecla mantenida",
+    resetMax: "↺ Reiniciar máximo",
+    repeatTitle: "Prueba de tasa de repetición",
+    repeatSub: "Mantén pulsada una sola tecla para medir su velocidad de repetición. Más eventos/seg = repetición más rápida.",
+    rrHoldKey: "Mantén una tecla", rrNoKey: "Ninguna tecla mantenida",
+    statEventsSec: "Eventos / seg", statTotalRepeats: "Repeticiones totales", statInitialDelay: "Retraso inicial (ms)", statRating: "Calificación",
+    ratingExcellent: "Excelente", ratingGood: "Buena", ratingNormal: "Normal", ratingSlow: "Lenta",
+    resetBtn: "↺ Reiniciar",
+    footerSuite: "Suite profesional de diagnóstico de teclado",
+    footerLocal: "Todas las pruebas se ejecutan localmente en tu navegador",
+    footerNoData: "No se recopilan datos"
+  },
+  fr: {
+    logoSub: "Suite de diagnostic de clavier",
+    navKeytest: "Test de touches", navTyping: "Vitesse de frappe", navCombo: "Combinaisons", navRollover: "Rollover", navRepeat: "Taux de répétition",
+    navTypingShort: "Frappe", navComboShort: "Combos", navRepeatShort: "Répétition",
+    bannerWaitTitle: "En attente d'une saisie clavier…",
+    bannerWaitSub: "Appuyez sur une touche pour confirmer que votre clavier est connecté et détecté par le navigateur.",
+    bannerDetectedTitle: "Clavier détecté",
+    bannerDetectedPrefix: "Réception de la saisie — dernière touche :",
+    bannerDetectedSuffix: "Tous les diagnostics sont actifs.",
+    bannerDismiss: "Fermer", bannerGotIt: "Compris",
+    keytestTitle: "Test de pression des touches",
+    keytestSub: "Appuyez sur une touche pour la tester. Les touches deviennent vertes une fois testées. Testez chaque touche pour vérifier le bon fonctionnement.",
+    kdPlaceholder: "Appuyez sur une touche pour commencer",
+    statKeysPressed: "Touches appuyées", statUniqueKeys: "Touches uniques", statSpecialKeys: "Touches spéciales", statLayoutTested: "Disposition testée",
+    keyLogPlaceholder: "L'historique des touches apparaîtra ici...",
+    kbLayoutLabel: "Disposition du clavier :",
+    kbFullBtn: "⌨ Complet (pavé num.)", kbLaptopBtn: "💻 Portable (sans pavé num.)", kbHalfBtn: "◧ Moitié (gauche)",
+    kbFullBadge: "Complet — {n} touches (avec pavé numérique)", kbLaptopBadge: "Portable — {n} touches (sans pavé numérique)", kbHalfBadge: "Moitié — {n} touches (côté gauche)",
+    kbHalfNote: "Affiche uniquement les touches de gauche (Q–T, A–G, Z–B + modificateurs)",
+    resetTest: "↺ Réinitialiser le test",
+    typingTitle: "Test de vitesse de frappe",
+    typingSub: "Tapez la phrase ci-dessous le plus rapidement et précisément possible. Les résultats se mettent à jour en direct.",
+    typingPlaceholder: "Cliquez ici et commencez à taper...",
+    statWPM: "MPM", statAccuracy: "Précision", statTime: "Temps",
+    newText: "↺ Nouveau texte", focusInput: "▶ Focus sur le champ",
+    comboTitle: "Testeur de combinaisons de touches",
+    comboSub: "Maintenez plusieurs touches enfoncées simultanément pour tester des raccourcis comme Ctrl+Alt+Suppr.",
+    comboHint: "Maintenez des touches pour voir la combinaison...",
+    statKeysHeld: "Touches maintenues", statCombosTested: "Combinaisons testées", statMaxSimultaneous: "Max simultané", statModifierKeys: "Touches modificatrices utilisées",
+    resetStats: "↺ Réinitialiser les stats",
+    rolloverTitle: "Test de rollover N-Key (NKRO)",
+    rolloverSub: "Maintenez autant de touches que possible. Le 6KRO est de niveau gaming ; le NKRO (illimité) est de niveau professionnel.",
+    roLabel: "touches maintenues simultanément",
+    roPlaceholder: "Maintenez plusieurs touches pour tester la capacité de rollover...",
+    roMaxReachedLabel: "Maximum atteint", roNkroCapableLong: "✓ NKRO / Rollover complet", roLimited: "Rollover limité",
+    roKeysHeldNkro: "touches maintenues — ✓ NKRO compatible", roKeysPartial: "touches — Rollover partiel", roKeySingle: "touche maintenue",
+    resetMax: "↺ Réinitialiser le max",
+    repeatTitle: "Test du taux de répétition",
+    repeatSub: "Maintenez une seule touche pour mesurer sa vitesse de répétition. Plus d'événements/s = répétition plus rapide.",
+    rrHoldKey: "Maintenez une touche", rrNoKey: "Aucune touche maintenue",
+    statEventsSec: "Événements / s", statTotalRepeats: "Répétitions totales", statInitialDelay: "Délai initial (ms)", statRating: "Évaluation",
+    ratingExcellent: "Excellent", ratingGood: "Bon", ratingNormal: "Normal", ratingSlow: "Lent",
+    resetBtn: "↺ Réinitialiser",
+    footerSuite: "Suite professionnelle de diagnostic de clavier",
+    footerLocal: "Tous les tests s'exécutent localement dans votre navigateur",
+    footerNoData: "Aucune donnée n'est collectée"
+  },
+  de: {
+    logoSub: "Tastatur-Diagnosesuite",
+    navKeytest: "Tastentest", navTyping: "Tippgeschwindigkeit", navCombo: "Kombinationen", navRollover: "Rollover", navRepeat: "Wiederholrate",
+    navTypingShort: "Tippen", navComboShort: "Kombos", navRepeatShort: "Wiederh.",
+    bannerWaitTitle: "Warte auf Tastatureingabe…",
+    bannerWaitSub: "Drücke eine beliebige Taste, um zu bestätigen, dass deine Tastatur verbunden und vom Browser erkannt wird.",
+    bannerDetectedTitle: "Tastatur erkannt",
+    bannerDetectedPrefix: "Eingabe empfangen — letzte Taste:",
+    bannerDetectedSuffix: "Alle Diagnosen sind jetzt aktiv.",
+    bannerDismiss: "Schließen", bannerGotIt: "Verstanden",
+    keytestTitle: "Tastendruck-Test",
+    keytestSub: "Drücke eine beliebige Taste, um sie zu testen. Getestete Tasten werden grün. Teste jede Taste, um die volle Funktion zu prüfen.",
+    kdPlaceholder: "Drücke eine Taste, um zu beginnen",
+    statKeysPressed: "Gedrückte Tasten", statUniqueKeys: "Eindeutige Tasten", statSpecialKeys: "Spezialtasten", statLayoutTested: "Layout getestet",
+    keyLogPlaceholder: "Der Tastenverlauf wird hier angezeigt...",
+    kbLayoutLabel: "Tastaturlayout:",
+    kbFullBtn: "⌨ Vollständig (Numpad)", kbLaptopBtn: "💻 Laptop (ohne Numpad)", kbHalfBtn: "◧ Hälfte (links)",
+    kbFullBadge: "Vollständig — {n} Tasten (mit Numpad)", kbLaptopBadge: "Laptop — {n} Tasten (ohne Numpad)", kbHalfBadge: "Hälfte — {n} Tasten (linke Seite)",
+    kbHalfNote: "Zeigt nur die Tasten der linken Seite (Q–T, A–G, Z–B + Modifikatoren)",
+    resetTest: "↺ Test zurücksetzen",
+    typingTitle: "Tippgeschwindigkeitstest",
+    typingSub: "Tippe den folgenden Satz so schnell und genau wie möglich. Ergebnisse werden live aktualisiert.",
+    typingPlaceholder: "Hier klicken und losschreiben...",
+    statWPM: "WPM", statAccuracy: "Genauigkeit", statTime: "Zeit",
+    newText: "↺ Neuer Text", focusInput: "▶ Eingabefeld fokussieren",
+    comboTitle: "Tastenkombinationstester",
+    comboSub: "Halte mehrere Tasten gleichzeitig gedrückt, um Tastenkombinationen wie Strg+Alt+Entf zu testen.",
+    comboHint: "Halte Tasten gedrückt, um die Kombination zu sehen...",
+    statKeysHeld: "Gehaltene Tasten", statCombosTested: "Getestete Kombos", statMaxSimultaneous: "Max. gleichzeitig", statModifierKeys: "Verwendete Modifikatoren",
+    resetStats: "↺ Statistik zurücksetzen",
+    rolloverTitle: "N-Key-Rollover-Test (NKRO)",
+    rolloverSub: "Halte so viele Tasten wie möglich gleichzeitig. 6KRO ist Gaming-Niveau; NKRO (unbegrenzt) ist professionelles Niveau.",
+    roLabel: "gleichzeitig gehaltene Tasten",
+    roPlaceholder: "Halte mehrere Tasten, um die Rollover-Fähigkeit zu testen...",
+    roMaxReachedLabel: "Maximum erreicht", roNkroCapableLong: "✓ NKRO / Voller Rollover möglich", roLimited: "Begrenzter Rollover",
+    roKeysHeldNkro: "Tasten gehalten — ✓ NKRO-fähig", roKeysPartial: "Tasten — Teilweiser Rollover", roKeySingle: "Taste gehalten",
+    resetMax: "↺ Maximum zurücksetzen",
+    repeatTitle: "Tastenwiederholraten-Test",
+    repeatSub: "Halte eine einzelne Taste gedrückt, um ihre Wiederholgeschwindigkeit zu messen. Mehr Ereignisse/s = schnellere Wiederholrate.",
+    rrHoldKey: "Halte eine Taste", rrNoKey: "Keine Taste gehalten",
+    statEventsSec: "Ereignisse / s", statTotalRepeats: "Wiederholungen gesamt", statInitialDelay: "Anfangsverzögerung (ms)", statRating: "Bewertung",
+    ratingExcellent: "Ausgezeichnet", ratingGood: "Gut", ratingNormal: "Normal", ratingSlow: "Langsam",
+    resetBtn: "↺ Zurücksetzen",
+    footerSuite: "Professionelle Tastatur-Diagnosesuite",
+    footerLocal: "Alle Tests laufen lokal in deinem Browser",
+    footerNoData: "Es werden keine Daten erfasst"
+  },
+  hi: {
+    logoSub: "कीबोर्ड डायग्नोस्टिक्स सूट",
+    navKeytest: "कीबोर्ड टेस्ट", navTyping: "टाइपिंग स्पीड", navCombo: "कॉम्बिनेशन", navRollover: "रोलओवर", navRepeat: "रिपीट रेट",
+    navTypingShort: "टाइपिंग", navComboShort: "कॉम्बो", navRepeatShort: "रिपीट",
+    bannerWaitTitle: "कीबोर्ड इनपुट का इंतज़ार है…",
+    bannerWaitSub: "यह पुष्टि करने के लिए कोई भी कुंजी दबाएं कि आपका कीबोर्ड कनेक्ट है और ब्राउज़र द्वारा डिटेक्ट हो रहा है।",
+    bannerDetectedTitle: "कीबोर्ड डिटेक्ट हो गया",
+    bannerDetectedPrefix: "इनपुट मिल रहा है — आख़िरी कुंजी:",
+    bannerDetectedSuffix: "सभी डायग्नोस्टिक्स अब सक्रिय हैं।",
+    bannerDismiss: "बंद करें", bannerGotIt: "ठीक है",
+    keytestTitle: "की प्रेस टेस्ट",
+    keytestSub: "किसी भी कुंजी को टेस्ट करने के लिए उसे दबाएं। टेस्ट होने पर कुंजियाँ हरी हो जाएंगी। पूरी कार्यक्षमता जांचने के लिए हर कुंजी आज़माएं।",
+    kdPlaceholder: "शुरू करने के लिए कोई भी कुंजी दबाएं",
+    statKeysPressed: "दबाई गई कुंजियाँ", statUniqueKeys: "अलग कुंजियाँ", statSpecialKeys: "विशेष कुंजियाँ", statLayoutTested: "लेआउट टेस्ट हुआ",
+    keyLogPlaceholder: "कुंजी इतिहास यहाँ दिखेगा...",
+    kbLayoutLabel: "कीबोर्ड लेआउट:",
+    kbFullBtn: "⌨ फुल (नमपैड)", kbLaptopBtn: "💻 लैपटॉप (नमपैड नहीं)", kbHalfBtn: "◧ हाफ (बाएं)",
+    kbFullBadge: "फुल — {n} कुंजियाँ (नमपैड के साथ)", kbLaptopBadge: "लैपटॉप — {n} कुंजियाँ (नमपैड के बिना)", kbHalfBadge: "हाफ — {n} कुंजियाँ (बायाँ हिस्सा)",
+    kbHalfNote: "केवल बाएं हाथ की कुंजियाँ दिखाई जा रही हैं (Q–T, A–G, Z–B + मॉडिफायर)",
+    resetTest: "↺ टेस्ट रीसेट करें",
+    typingTitle: "टाइपिंग स्पीड टेस्ट",
+    typingSub: "नीचे दिए गए वाक्य को जितनी तेज़ी और सटीकता से हो सके टाइप करें। परिणाम लाइव अपडेट होते हैं।",
+    typingPlaceholder: "यहाँ क्लिक करें और टाइप करना शुरू करें...",
+    statWPM: "WPM", statAccuracy: "सटीकता", statTime: "समय",
+    newText: "↺ नया टेक्स्ट", focusInput: "▶ इनपुट फोकस करें",
+    comboTitle: "की कॉम्बिनेशन टेस्टर",
+    comboSub: "Ctrl+Alt+Del जैसे शॉर्टकट और मॉडिफायर कॉम्बो टेस्ट करने के लिए एक साथ कई कुंजियाँ दबाकर रखें।",
+    comboHint: "कॉम्बिनेशन देखने के लिए कोई भी कुंजियाँ दबाकर रखें...",
+    statKeysHeld: "दबाई गई कुंजियाँ", statCombosTested: "टेस्ट किए कॉम्बो", statMaxSimultaneous: "अधिकतम एक साथ", statModifierKeys: "इस्तेमाल किए मॉडिफायर",
+    resetStats: "↺ आंकड़े रीसेट करें",
+    rolloverTitle: "N-Key रोलओवर (NKRO) टेस्ट",
+    rolloverSub: "एक साथ जितनी हो सके उतनी कुंजियाँ दबाकर रखें। 6KRO गेमिंग-ग्रेड है; NKRO (असीमित) प्रोफेशनल-ग्रेड है।",
+    roLabel: "एक साथ दबाई गई कुंजियाँ",
+    roPlaceholder: "रोलओवर क्षमता जांचने के लिए कई कुंजियाँ दबाकर रखें...",
+    roMaxReachedLabel: "अधिकतम पहुंचा", roNkroCapableLong: "✓ NKRO / फुल रोलओवर सक्षम", roLimited: "सीमित रोलओवर",
+    roKeysHeldNkro: "कुंजियाँ दबाई गईं — ✓ NKRO सक्षम", roKeysPartial: "कुंजियाँ — आंशिक रोलओवर", roKeySingle: "कुंजी दबाई गई",
+    resetMax: "↺ अधिकतम रीसेट करें",
+    repeatTitle: "की रिपीट रेट टेस्ट",
+    repeatSub: "किसी एक कुंजी को दबाकर रखें ताकि उसकी रिपीट स्पीड मापी जा सके। ज़्यादा इवेंट/सेक = तेज़ रिपीट रेट।",
+    rrHoldKey: "एक कुंजी दबाकर रखें", rrNoKey: "कोई कुंजी दबाई नहीं गई",
+    statEventsSec: "इवेंट / सेक", statTotalRepeats: "कुल रिपीट", statInitialDelay: "प्रारंभिक देरी (ms)", statRating: "रेटिंग",
+    ratingExcellent: "उत्कृष्ट", ratingGood: "अच्छा", ratingNormal: "सामान्य", ratingSlow: "धीमा",
+    resetBtn: "↺ रीसेट करें",
+    footerSuite: "प्रोफेशनल कीबोर्ड डायग्नोस्टिक्स सूट",
+    footerLocal: "सभी टेस्ट आपके ब्राउज़र में लोकली चलते हैं",
+    footerNoData: "कोई डेटा एकत्र नहीं किया जाता"
+  }
+};
+
+const SENTENCES = {
+  en: [
+    "The quick brown fox jumps over the lazy dog near the riverbank.",
+    "Professional keyboard testing ensures every key registers correctly.",
+    "HSBJK diagnostics helps identify faulty switches and ghosting issues.",
+    "Typing speed and accuracy are critical skills in any professional role.",
+    "A good mechanical keyboard can last for decades with proper care."
+  ],
+  es: [
+    "El veloz murciélago hindú comía feliz cardillo y kiwi.",
+    "Las pruebas profesionales de teclado garantizan que cada tecla funcione correctamente.",
+    "HSBJK ayuda a identificar interruptores defectuosos y problemas de ghosting.",
+    "La velocidad y precisión al escribir son habilidades clave en cualquier trabajo.",
+    "Un buen teclado mecánico puede durar décadas con el cuidado adecuado."
+  ],
+  fr: [
+    "Portez ce vieux whisky au juge blond qui fume.",
+    "Les tests professionnels de clavier garantissent que chaque touche fonctionne correctement.",
+    "HSBJK aide à identifier les interrupteurs défectueux et les problèmes de ghosting.",
+    "La vitesse et la précision de frappe sont des compétences essentielles au travail.",
+    "Un bon clavier mécanique peut durer des décennies avec un bon entretien."
+  ],
+  de: [
+    "Zwölf Boxkämpfer jagen Viktor quer über den großen Sylter Deich.",
+    "Professionelle Tastaturtests stellen sicher, dass jede Taste korrekt funktioniert.",
+    "HSBJK hilft, defekte Schalter und Ghosting-Probleme zu erkennen.",
+    "Tippgeschwindigkeit und Genauigkeit sind wichtige Fähigkeiten in jedem Beruf.",
+    "Eine gute mechanische Tastatur kann mit guter Pflege Jahrzehnte halten."
+  ],
+  hi: [
+    "तेज़ भूरा लोमड़ा आलसी कुत्ते के ऊपर से कूद गया।",
+    "पेशेवर कीबोर्ड परीक्षण यह सुनिश्चित करता है कि हर कुंजी सही तरीके से काम करे।",
+    "HSBJK डायग्नोस्टिक्स खराब स्विच और घोस्टिंग समस्याओं की पहचान में मदद करता है।",
+    "टाइपिंग की गति और सटीकता किसी भी पेशेवर भूमिका में महत्वपूर्ण कौशल हैं।",
+    "एक अच्छा मेकैनिकल कीबोर्ड सही देखभाल के साथ दशकों तक चल सकता है।"
+  ]
+};
+
+let currentLang = 'en';
+function t(key) {
+  return (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.en[key] || key;
+}
+
+// ======================================================================
+// KEYBOARD LAYOUT
+// ======================================================================
+const KB_ROWS = [
+  [{l:'Esc',c:'Escape'},{l:'F1',c:'F1'},{l:'F2',c:'F2'},{l:'F3',c:'F3'},{l:'F4',c:'F4'},{l:'F5',c:'F5'},{l:'F6',c:'F6'},{l:'F7',c:'F7'},{l:'F8',c:'F8'},{l:'F9',c:'F9'},{l:'F10',c:'F10'},{l:'F11',c:'F11'},{l:'F12',c:'F12'}],
+  [{l:'`',c:'Backquote'},{l:'1',c:'Digit1'},{l:'2',c:'Digit2'},{l:'3',c:'Digit3'},{l:'4',c:'Digit4'},{l:'5',c:'Digit5'},{l:'6',c:'Digit6'},{l:'7',c:'Digit7'},{l:'8',c:'Digit8'},{l:'9',c:'Digit9'},{l:'0',c:'Digit0'},{l:'-',c:'Minus'},{l:'=',c:'Equal'},{l:'Bksp',c:'Backspace',w:'w80'}],
+  [{l:'Tab',c:'Tab',w:'w56'},{l:'Q',c:'KeyQ'},{l:'W',c:'KeyW'},{l:'E',c:'KeyE'},{l:'R',c:'KeyR'},{l:'T',c:'KeyT'},{l:'Y',c:'KeyY'},{l:'U',c:'KeyU'},{l:'I',c:'KeyI'},{l:'O',c:'KeyO'},{l:'P',c:'KeyP'},{l:'[',c:'BracketLeft'},{l:']',c:'BracketRight'},{l:'\\',c:'Backslash',w:'w56'}],
+  [{l:'Caps',c:'CapsLock',w:'w56'},{l:'A',c:'KeyA'},{l:'S',c:'KeyS'},{l:'D',c:'KeyD'},{l:'F',c:'KeyF'},{l:'G',c:'KeyG'},{l:'H',c:'KeyH'},{l:'J',c:'KeyJ'},{l:'K',c:'KeyK'},{l:'L',c:'KeyL'},{l:';',c:'Semicolon'},{l:"'",c:'Quote'},{l:'Enter',c:'Enter',w:'w80'}],
+  [{l:'Shift',c:'ShiftLeft',w:'w80'},{l:'Z',c:'KeyZ'},{l:'X',c:'KeyX'},{l:'C',c:'KeyC'},{l:'V',c:'KeyV'},{l:'B',c:'KeyB'},{l:'N',c:'KeyN'},{l:'M',c:'KeyM'},{l:',',c:'Comma'},{l:'.',c:'Period'},{l:'/',c:'Slash'},{l:'Shift',c:'ShiftRight',w:'w80'}],
+  [{l:'Ctrl',c:'ControlLeft',w:'w56'},{l:'Alt',c:'AltLeft',w:'w56'},{l:'Space',c:'Space',w:'w190'},{l:'Alt',c:'AltRight',w:'w56'},{l:'Ctrl',c:'ControlRight',w:'w56'}]
+];
+
+// Nav cluster (Insert/Home/PgUp/Delete/End/PgDn)
+const NAV_CLUSTER = [
+  {l:'Ins',c:'Insert',gc:1,gr:1},{l:'Home',c:'Home',gc:2,gr:1},{l:'PgUp',c:'PageUp',gc:3,gr:1},
+  {l:'Del',c:'Delete',gc:1,gr:2},{l:'End',c:'End',gc:2,gr:2},{l:'PgDn',c:'PageDown',gc:3,gr:2}
+];
+
+// Arrow cluster
+const ARROW_CLUSTER = [
+  {l:'↑',c:'ArrowUp',gc:2,gr:1},
+  {l:'←',c:'ArrowLeft',gc:1,gr:2},{l:'↓',c:'ArrowDown',gc:2,gr:2},{l:'→',c:'ArrowRight',gc:3,gr:2}
+];
+
+// Standard 17-key numpad with proper spans for +, Enter and 0
+const NUMPAD_KEYS = [
+  {l:'Num',c:'NumLock',gc:'1',gr:'1'},{l:'/',c:'NumpadDivide',gc:'2',gr:'1'},{l:'*',c:'NumpadMultiply',gc:'3',gr:'1'},{l:'-',c:'NumpadSubtract',gc:'4',gr:'1'},
+  {l:'7',c:'Numpad7',gc:'1',gr:'2'},{l:'8',c:'Numpad8',gc:'2',gr:'2'},{l:'9',c:'Numpad9',gc:'3',gr:'2'},{l:'+',c:'NumpadAdd',gc:'4',gr:'2 / span 2'},
+  {l:'4',c:'Numpad4',gc:'1',gr:'3'},{l:'5',c:'Numpad5',gc:'2',gr:'3'},{l:'6',c:'Numpad6',gc:'3',gr:'3'},
+  {l:'1',c:'Numpad1',gc:'1',gr:'4'},{l:'2',c:'Numpad2',gc:'2',gr:'4'},{l:'3',c:'Numpad3',gc:'3',gr:'4'},{l:'Enter',c:'NumpadEnter',gc:'4',gr:'4 / span 2'},
+  {l:'0',c:'Numpad0',gc:'1 / span 2',gr:'5'},{l:'.',c:'NumpadDecimal',gc:'3',gr:'5'}
+];
+
+// Half keyboard = left side only
+const KB_HALF_ROWS = [
+  [{l:'Esc',c:'Escape'},{l:'F1',c:'F1'},{l:'F2',c:'F2'},{l:'F3',c:'F3'},{l:'F4',c:'F4'},{l:'F5',c:'F5'},{l:'F6',c:'F6'}],
+  [{l:'`',c:'Backquote'},{l:'1',c:'Digit1'},{l:'2',c:'Digit2'},{l:'3',c:'Digit3'},{l:'4',c:'Digit4'},{l:'5',c:'Digit5'},{l:'6',c:'Digit6'}],
+  [{l:'Tab',c:'Tab',w:'w56'},{l:'Q',c:'KeyQ'},{l:'W',c:'KeyW'},{l:'E',c:'KeyE'},{l:'R',c:'KeyR'},{l:'T',c:'KeyT'}],
+  [{l:'Caps',c:'CapsLock',w:'w56'},{l:'A',c:'KeyA'},{l:'S',c:'KeyS'},{l:'D',c:'KeyD'},{l:'F',c:'KeyF'},{l:'G',c:'KeyG'}],
+  [{l:'Shift',c:'ShiftLeft',w:'w80'},{l:'Z',c:'KeyZ'},{l:'X',c:'KeyX'},{l:'C',c:'KeyC'},{l:'V',c:'KeyV'},{l:'B',c:'KeyB'}],
+  [{l:'Ctrl',c:'ControlLeft',w:'w56'},{l:'Alt',c:'AltLeft',w:'w56'},{l:'Space',c:'Space',w:'w190'}]
+];
+
+// ---- Key counts per layout ----
+const TOTAL_MAIN = KB_ROWS.flat().length;          // 71
+const TOTAL_NAV = NAV_CLUSTER.length;              // 6
+const TOTAL_ARROWS = ARROW_CLUSTER.length;         // 4
+const TOTAL_NUMPAD = NUMPAD_KEYS.length;           // 17
+const TOTAL_FULL = TOTAL_MAIN + TOTAL_NAV + TOTAL_ARROWS + TOTAL_NUMPAD;   // 98
+const TOTAL_LAPTOP = TOTAL_MAIN + TOTAL_NAV + TOTAL_ARROWS;                // 81
+const TOTAL_HALF = KB_HALF_ROWS.flat().length;     // 35
+
+let currentTotalKeys = TOTAL_FULL;
+let kbMode = 'full';
+
+function buildHalfKeyboard() {
+  KB_HALF_ROWS.forEach((row, ri) => {
+    const el = document.getElementById('kb-h'+ri);
+    if (!el || el.children.length > 0) return;
+    row.forEach(k => {
+      const d = document.createElement('div');
+      d.className = 'kb-key' + (k.w ? ' '+k.w : '');
+      d.id = 'hk-'+k.c;
+      d.textContent = k.l;
+      el.appendChild(d);
+    });
+  });
+}
+
+function buildGridCluster(containerId, keys, cols) {
+  const el = document.getElementById(containerId);
+  el.style.gridTemplateColumns = `repeat(${cols}, 38px)`;
+  keys.forEach(k => {
+    const d = document.createElement('div');
+    d.className = 'grid-key';
+    d.id = 'kk-'+k.c;
+    d.style.gridColumn = String(k.gc);
+    d.style.gridRow = String(k.gr);
+    d.textContent = k.l;
+    el.appendChild(d);
+  });
+}
+
+function refreshKbBadge() {
+  const badge = document.getElementById('kb-mode-badge');
+  if (kbMode === 'full') {
+    badge.textContent = t('kbFullBadge').replace('{n}', TOTAL_FULL);
+  } else if (kbMode === 'laptop') {
+    badge.textContent = t('kbLaptopBadge').replace('{n}', TOTAL_LAPTOP);
+  } else {
+    badge.textContent = t('kbHalfBadge').replace('{n}', TOTAL_HALF);
+  }
+}
+
+function setKbMode(mode) {
+  kbMode = mode;
+  const fullWrap = document.getElementById('kb-full');
+  const halfWrap = document.getElementById('kb-half');
+  const numpadWrap = document.getElementById('kb-numpad-wrap');
+  const badge = document.getElementById('kb-mode-badge');
+  const btns = {
+    full: document.getElementById('kb-btn-full'),
+    laptop: document.getElementById('kb-btn-laptop'),
+    half: document.getElementById('kb-btn-half')
+  };
+
+  Object.values(btns).forEach(b => {
+    b.style.background = 'var(--surface)'; b.style.color = 'var(--text2)'; b.style.fontWeight = '400';
+  });
+  btns[mode].style.background = '#2563eb'; btns[mode].style.color = '#fff'; btns[mode].style.fontWeight = '500';
+
+  if (mode === 'half') {
+    fullWrap.style.display = 'none';
+    buildHalfKeyboard();
+    halfWrap.style.display = '';
+    currentTotalKeys = TOTAL_HALF;
+    badge.style.color = '#15803d'; badge.style.background = '#f0fdf4'; badge.style.borderColor = '#bbf7d0';
+    testedKeys.forEach(code => { const el = document.getElementById('hk-'+code); if (el) el.classList.add('pressed'); });
+  } else {
+    halfWrap.style.display = 'none';
+    fullWrap.style.display = 'flex';
+    if (mode === 'full') {
+      numpadWrap.style.display = '';
+      currentTotalKeys = TOTAL_FULL;
+      badge.style.color = '#1d4ed8'; badge.style.background = '#eff6ff'; badge.style.borderColor = '#bfdbfe';
+    } else {
+      numpadWrap.style.display = 'none';
+      currentTotalKeys = TOTAL_LAPTOP;
+      badge.style.color = '#92400e'; badge.style.background = '#fffbeb'; badge.style.borderColor = '#fde68a';
+    }
+  }
+  refreshKbBadge();
+  document.getElementById('s-pct').textContent = Math.round(testedKeys.size / currentTotalKeys * 100) + '%';
+}
+
+const SPECIAL = new Set([
+  'Escape','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12','Backspace','Tab','CapsLock',
+  'ShiftLeft','ShiftRight','ControlLeft','ControlRight','AltLeft','AltRight','Enter','Space',
+  'Insert','Delete','Home','End','PageUp','PageDown','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
+  'NumLock','NumpadDivide','NumpadMultiply','NumpadSubtract','NumpadAdd','NumpadEnter','NumpadDecimal'
+]);
+
+// Build main block
+KB_ROWS.forEach((row, ri) => {
+  const el = document.getElementById('kb-r'+ri);
+  row.forEach(k => {
+    const d = document.createElement('div');
+    d.className = 'kb-key' + (k.w ? ' '+k.w : '');
+    d.id = 'kk-'+k.c;
+    d.textContent = k.l;
+    el.appendChild(d);
+  });
+});
+
+// Build nav / arrow / numpad clusters
+buildGridCluster('kb-nav-grid', NAV_CLUSTER, 3);
+buildGridCluster('kb-arrow-grid', ARROW_CLUSTER, 3);
+buildGridCluster('kb-numpad-grid', NUMPAD_KEYS, 4);
+
+// ======================================================================
+// THEME (dark / light)
+// ======================================================================
+let currentTheme = 'light';
+function toggleTheme() {
+  currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  document.getElementById('theme-toggle').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+}
+
+// ======================================================================
+// LANGUAGE
+// ======================================================================
+function applyLanguage(lang) {
+  currentLang = TRANSLATIONS[lang] ? lang : 'en';
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+
+  refreshKbBadge();
+
+  // Idle-state placeholders that are normally set dynamically
+  if (document.getElementById('key-display').classList.contains('idle')) {
+    document.getElementById('kd-name').textContent = t('kdPlaceholder');
+  }
+  if (document.getElementById('rr-display').classList.contains('idle')) {
+    document.getElementById('rr-char').textContent = t('rrHoldKey');
+    document.getElementById('rr-name').textContent = t('rrNoKey');
+  }
+  if (totalPresses === 0) {
+    const logEl = document.getElementById('key-log');
+    logEl.textContent = t('keyLogPlaceholder');
+  }
+  if (!Object.keys(heldKeys).length) {
+    document.getElementById('combo-display').innerHTML = '<span class="combo-hint" data-i18n="comboHint">'+t('comboHint')+'</span>';
+  }
+  if (roMax === 0 && Object.keys(heldKeys).length === 0) {
+    document.getElementById('ro-rating').textContent = t('roPlaceholder');
+  }
+  if (rrTotal === 0) {
+    document.getElementById('rr-delay').textContent = '—';
+    document.getElementById('rr-rating').textContent = '—';
+  }
+
+  // Refresh the typing test text in the new language
+  initTyping();
+}
+
+function setLanguage(lang) {
+  applyLanguage(lang);
+}
+
+// ---- STATE ----
+let heldKeys = {}, testedKeys = new Set(), keyLog = [], totalPresses = 0, specialCount = 0;
+
+// ---- KEYBOARD DETECTION BANNER ----
+let keyboardDetected = false;
+function handleDetection(e) {
+  if (keyboardDetected) return;
+  keyboardDetected = true;
+  const banner = document.getElementById('detect-banner');
+  banner.classList.add('detected');
+  document.getElementById('banner-icon').textContent = '✅';
+  document.getElementById('banner-title').textContent = t('bannerDetectedTitle');
+  document.getElementById('banner-sub').textContent =
+    `${t('bannerDetectedPrefix')} ${e.key === ' ' ? 'Space' : e.key} (${e.code}). ${t('bannerDetectedSuffix')}`;
+  document.getElementById('banner-btn').textContent = t('bannerGotIt');
+  setTimeout(() => { banner.style.display = 'none'; }, 3500);
+}
+
+// ---- KEY TEST ----
+function updateKeyTest(e) {
+  document.getElementById('key-display').classList.remove('idle');
+  const label = e.key === ' ' ? 'Space' : e.key;
+  document.getElementById('kd-char').textContent = label.length === 1 ? label : label.substring(0,8);
+  document.getElementById('kd-name').textContent = (e.key === ' ' ? 'Space' : e.key) + '  —  ' + e.code;
+  document.getElementById('kd-code').textContent = 'keyCode: ' + e.keyCode + '   which: ' + e.which;
+  testedKeys.add(e.code);
+  totalPresses++;
+  if (SPECIAL.has(e.code)) specialCount++;
+  keyLog.unshift(e.key === ' ' ? '␣' : e.key.substring(0,5));
+  if (keyLog.length > 50) keyLog.pop();
+  document.getElementById('s-total').textContent = totalPresses;
+  document.getElementById('s-unique').textContent = testedKeys.size;
+  document.getElementById('s-special').textContent = specialCount;
+  document.getElementById('s-pct').textContent = Math.round(testedKeys.size / currentTotalKeys * 100) + '%';
+  const logEl = document.getElementById('key-log');
+  logEl.textContent = keyLog.join(' · ');
+  logEl.style.fontStyle = 'normal'; logEl.style.color = '';
+  // Highlight on full/laptop main+clusters (kk-) and half keyboard (hk-)
+  ['kk-','hk-'].forEach(prefix => {
+    const kEl = document.getElementById(prefix+e.code);
+    if (kEl) {
+      kEl.classList.add('active');
+      setTimeout(() => { kEl.classList.remove('active'); kEl.classList.add('pressed'); }, 140);
+    }
+  });
+}
+function resetKeyTest() {
+  testedKeys.clear(); totalPresses = 0; specialCount = 0; keyLog = [];
+  ['s-total','s-unique','s-special'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('s-pct').textContent = '0%';
+  const logEl = document.getElementById('key-log');
+  logEl.textContent = t('keyLogPlaceholder'); logEl.style.fontStyle = 'italic'; logEl.style.color = 'var(--text3)';
+  document.querySelectorAll('.kb-key, .grid-key').forEach(k => k.classList.remove('pressed','active'));
+  document.querySelectorAll('.ro-key').forEach(k => k.classList.remove('pressed','active'));
+  document.getElementById('key-display').classList.add('idle');
+  document.getElementById('kd-char').textContent = '↓';
+  document.getElementById('kd-name').textContent = t('kdPlaceholder');
+  document.getElementById('kd-code').textContent = '';
+}
+
+// ---- TYPING TEST ----
+let tText='', tTyped='', tStart=null, tTimer=null;
+function initTyping() {
+  const pool = SENTENCES[currentLang] || SENTENCES.en;
+  tText = pool[Math.floor(Math.random() * pool.length)];
+  tTyped = ''; tStart = null;
+  clearInterval(tTimer);
+  renderTyping();
+  ['t-wpm','t-time'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('t-acc').textContent = '100%';
+  document.getElementById('type-input').value = '';
+}
+function renderTyping() {
+  let html = '';
+  for (let i = 0; i < tText.length; i++) {
+    const ch = tText[i] === ' ' ? '&nbsp;' : tText[i];
+    if (i < tTyped.length) {
+      html += '<span class="'+(tTyped[i]===tText[i]?'correct':'wrong')+'">'+ch+'</span>';
+    } else if (i === tTyped.length) {
+      html += '<span class="cursor-char">'+ch+'</span>';
+    } else {
+      html += ch;
+    }
+  }
+  document.getElementById('typing-display').innerHTML = html;
+}
+document.getElementById('type-input').addEventListener('input', function() {
+  if (!tStart && this.value.length > 0) {
+    tStart = Date.now();
+    tTimer = setInterval(() => {
+      document.getElementById('t-time').textContent = Math.round((Date.now()-tStart)/1000)+'s';
+    }, 200);
+  }
+  tTyped = this.value.substring(0, tText.length);
+  renderTyping();
+  let correct = 0;
+  for (let i = 0; i < tTyped.length; i++) if (tTyped[i] === tText[i]) correct++;
+  const words = tTyped.trim().split(/\s+/).filter(Boolean).length;
+  const mins = (Date.now() - tStart) / 60000;
+  document.getElementById('t-wpm').textContent = mins > 0 ? Math.round(words / mins) : 0;
+  document.getElementById('t-acc').textContent = tTyped.length > 0 ? Math.round(correct/tTyped.length*100)+'%' : '100%';
+  if (tTyped === tText) clearInterval(tTimer);
+});
+function resetTyping() { initTyping(); document.getElementById('type-input').focus(); }
+initTyping();
+
+// ---- COMBO ----
+let comboTotal = 0, comboMax = 0, modsUsed = new Set(), lastSize = 0;
+const MOD_KEYS = ['Control','Shift','Alt','Meta'];
+function updateCombo() {
+  const keys = Object.keys(heldKeys);
+  const count = keys.length;
+  if (count > lastSize && count > 0) { comboTotal++; }
+  lastSize = count;
+  if (count > comboMax) comboMax = count;
+  keys.forEach(code => { const v = heldKeys[code]; if (MOD_KEYS.some(m => v.startsWith(m))) modsUsed.add(v); });
+  document.getElementById('c-held').textContent = count;
+  document.getElementById('c-total').textContent = comboTotal;
+  document.getElementById('c-max').textContent = comboMax;
+  document.getElementById('c-mods').textContent = modsUsed.size;
+  const cd = document.getElementById('combo-display');
+  if (!count) { cd.innerHTML = '<span class="combo-hint" data-i18n="comboHint">'+t('comboHint')+'</span>'; document.getElementById('combo-name').textContent = ''; return; }
+  let html = '';
+  keys.forEach((code, i) => {
+    if (i > 0) html += '<span class="combo-plus">+</span>';
+    html += '<span class="combo-key">' + (heldKeys[code]===' '?'Space':heldKeys[code]) + '</span>';
+  });
+  cd.innerHTML = html;
+  const mods = keys.filter(k => MOD_KEYS.some(m => heldKeys[k].startsWith(m))).map(k => heldKeys[k]);
+  const others = keys.filter(k => !MOD_KEYS.some(m => heldKeys[k].startsWith(m))).map(k => heldKeys[k]===' '?'Space':heldKeys[k]);
+  document.getElementById('combo-name').textContent = (mods.length && others.length) ? mods.join('+') + ' + ' + others.join('+') : '';
+}
+function resetCombo() { comboTotal=0; comboMax=0; modsUsed.clear(); lastSize=0; updateCombo(); }
+
+// ---- ROLLOVER ----
+let roMax = 0;
+const RO_KEYS = 'ABCDEFGHIJKLMNOPQRSTU'.split('');
+RO_KEYS.forEach(k => {
+  const d = document.createElement('div');
+  d.className = 'ro-key'; d.id = 'ro-'+k; d.textContent = k;
+  document.getElementById('ro-grid').appendChild(d);
+});
+function updateRollover() {
+  const vals = Object.values(heldKeys);
+  const count = vals.length;
+  if (count > roMax) roMax = count;
+  document.getElementById('ro-count').textContent = count;
+  RO_KEYS.forEach(k => {
+    const el = document.getElementById('ro-'+k);
+    el.classList.toggle('held', vals.some(v => v.toUpperCase() === k));
+  });
+  const r = document.getElementById('ro-rating');
+  if (!count) {
+    r.textContent = roMax > 0
+      ? `${t('roMaxReachedLabel')}: ${roMax} ${roMax>=6 ? t('roNkroCapableLong') : t('roLimited')}`
+      : t('roPlaceholder');
+    return;
+  }
+  r.textContent = count >= 6 ? `${count} ${t('roKeysHeldNkro')}` : count >= 3 ? `${count} ${t('roKeysPartial')}` : `${count} ${t('roKeySingle')}`;
+}
+function resetRollover() {
+  roMax=0;
+  document.getElementById('ro-count').textContent='0';
+  document.getElementById('ro-rating').textContent = t('roPlaceholder');
+  RO_KEYS.forEach(k=>document.getElementById('ro-'+k).classList.remove('held'));
+}
+
+// ---- REPEAT RATE ----
+let rrCode=null, rrEvents=[], rrTotal=0, rrFirstTime=null, rrFirstDelay=null;
+function updateRepeat(e) {
+  if (rrCode !== e.code) { rrCode=e.code; rrEvents=[]; rrTotal=0; rrFirstTime=Date.now(); rrFirstDelay=null; }
+  rrEvents.push(Date.now()); rrTotal++;
+  if (rrEvents.length > 20) rrEvents.shift();
+  const rd = document.getElementById('rr-display');
+  rd.classList.remove('idle');
+  document.getElementById('rr-char').textContent = e.key===' '?'Space':e.key.length===1?e.key:'■';
+  document.getElementById('rr-name').textContent = e.code;
+  document.getElementById('rr-total').textContent = rrTotal;
+  if (rrEvents.length >= 2) {
+    const gaps = [];
+    for (let i=1;i<rrEvents.length;i++) gaps.push(rrEvents[i]-rrEvents[i-1]);
+    const avg = gaps.reduce((a,b)=>a+b,0)/gaps.length;
+    const cps = Math.round(1000/avg);
+    document.getElementById('rr-cps').textContent = cps;
+    document.getElementById('rate-bar').style.width = Math.min(cps/30*100,100)+'%';
+    document.getElementById('rr-rating').textContent = cps>=25?t('ratingExcellent'):cps>=15?t('ratingGood'):cps>=8?t('ratingNormal'):t('ratingSlow');
+  }
+  if (!rrFirstDelay && rrTotal===2) { rrFirstDelay=rrEvents[0]-rrFirstTime; document.getElementById('rr-delay').textContent=Math.round(rrFirstDelay); }
+}
+function stopRepeat(e) { if(rrCode===e.code) rrCode=null; }
+function resetRepeat() {
+  rrCode=null; rrEvents=[]; rrTotal=0; rrFirstTime=null; rrFirstDelay=null;
+  ['rr-cps','rr-total'].forEach(id=>document.getElementById(id).textContent='0');
+  ['rr-delay','rr-rating'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('rate-bar').style.width='0%';
+  document.getElementById('rr-display').classList.add('idle');
+  document.getElementById('rr-char').textContent=t('rrHoldKey');
+  document.getElementById('rr-name').textContent=t('rrNoKey');
+}
+
+// ---- GLOBAL KEYDOWN / KEYUP ----
+document.addEventListener('keydown', e => {
+  const blocked = ['F5','Tab'];
+  if (!blocked.includes(e.key)) e.preventDefault();
+  heldKeys[e.code] = e.key;
+  handleDetection(e);
+  updateKeyTest(e);
+  updateCombo();
+  updateRollover();
+  updateRepeat(e);
+});
+document.addEventListener('keyup', e => {
+  delete heldKeys[e.code];
+  updateCombo();
+  updateRollover();
+  stopRepeat(e);
+});
+
+// ---- TAB SWITCHING ----
+function switchTab(tab, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (btn) {
+    // highlight both desktop and mobile nav
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+tab+"'")) b.classList.add('active');
+    });
+  }
+  if (tab === 'typing') { initTyping(); setTimeout(()=>document.getElementById('type-input').focus(), 100); }
+}
+
+// ---- TYPE INPUT KEYDOWN — allow typing ----
+document.getElementById('type-input').addEventListener('keydown', e => {
+  e.stopPropagation(); // prevent global handler from eating these
+});
+
+// ---- INITIAL SETUP ----
+refreshKbBadge();
+</script>
+</body>
+</html>
